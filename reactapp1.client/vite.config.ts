@@ -1,11 +1,12 @@
-import { fileURLToPath, URL } from 'node:url';
+import {fileURLToPath, URL} from 'node:url';
 
-import { defineConfig } from 'vite';
+import {defineConfig} from 'vite';
 import plugin from '@vitejs/plugin-react';
 import fs from 'fs';
 import path from 'path';
 import child_process from 'child_process';
-import { env } from 'process';
+import {env} from 'process';
+import {VitePWA} from "vite-plugin-pwa";
 
 const baseFolder =
     env.APPDATA !== undefined && env.APPDATA !== ''
@@ -25,7 +26,7 @@ if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
         '--format',
         'Pem',
         '--no-password',
-    ], { stdio: 'inherit', }).status) {
+    ], {stdio: 'inherit',}).status) {
         throw new Error("Could not create certificate.");
     }
 }
@@ -35,7 +36,38 @@ const target = env.ASPNETCORE_HTTPS_PORT ? `https://localhost:${env.ASPNETCORE_H
 
 // https://vitejs.dev/config/
 export default defineConfig({
-    plugins: [plugin()],
+    plugins: [plugin(),
+        VitePWA({
+            devOptions: {
+                enabled: true,
+            },
+            workbox: {
+                maximumFileSizeToCacheInBytes: 5000000, // <---- increasing the file size to cached 5mb
+            },
+            includeAssets: ['vite.svg', 'Logo-180x180.png', 'Logo-128x128.svg'],
+            manifest: {
+                name: 'React Lab 2',
+                short_name: 'RL2',
+                theme_color: '#ffffff',
+                icons: [
+                    {
+                        src: 'Logo-180x180.svg',
+                        sizes: '180x180',
+                        type: 'image/png',
+                    },
+                    {
+                        src: 'Logo-192x192.svg',
+                        sizes: '192x192',
+                        type: 'image/png',
+                    },
+                    {
+                        src: 'Logo-512x512.svg',
+                        sizes: '512x512',
+                        type: 'image/png',
+                    },
+                ],
+            },
+        }),],
     resolve: {
         alias: {
             '@': fileURLToPath(new URL('./src', import.meta.url))
@@ -43,7 +75,7 @@ export default defineConfig({
     },
     server: {
         proxy: {
-            '^/weatherforecast': {
+            '^/api': {
                 target,
                 secure: false
             }

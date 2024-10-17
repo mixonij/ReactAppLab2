@@ -1,33 +1,25 @@
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using ReactApp1.Application.Weather.Queries;
+using ReactApp1.Domain.Enities;
 
-namespace ReactApp1.Server.Controllers
+namespace ReactApp1.Server.Controllers;
+
+/// <summary>
+/// Контроллер погоды
+/// </summary>
+/// <param name="mediator">Шина MediatR</param>
+[ApiController]
+[Route("api/[controller]")]
+public class WeatherForecastController(IMediator mediator) : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class WeatherForecastController : ControllerBase
+    /// <summary>
+    /// Получение прогноза погоды
+    /// </summary>
+    /// <returns>Прогноз погоды на 5 дней</returns>
+    [HttpGet("[action]")]
+    public Task<List<WeatherForecast>> Get()
     {
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
-
-        private readonly ILogger<WeatherForecastController> _logger;
-
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
-        {
-            _logger = logger;
-        }
-
-        [HttpGet(Name = "GetWeatherForecast")]
-        public IEnumerable<WeatherForecast> Get()
-        {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
-        }
+        return mediator.Send(new GetWeatherQuery());
     }
 }
